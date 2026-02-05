@@ -1,0 +1,435 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, CheckCircle, XCircle, ArrowRight, Award, GraduationCap, Share2, MessageCircle, ChevronDown, ChevronUp, HelpCircle, MessageSquare, StopCircle } from 'lucide-react';
+import { QuizData, QuizQuestion } from '../types';
+import AITutor from './AITutor';
+
+interface QuizPlayerProps {
+  quizData: QuizData;
+  timePerQuestion: number;
+  onExit: () => void;
+  onQuizComplete?: (score: number, total: number) => void;
+}
+
+interface QuestionResult {
+  isCorrect: boolean;
+  selectedOption: number;
+}
+
+const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizData, timePerQuestion, onExit, onQuizComplete }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [results, setResults] = useState<QuestionResult[]>([]);
+  const [timeLeft, setTimeLeft] = useState(timePerQuestion);
+  const [isFinished, setIsFinished] = useState(false);
+  const [hasCalledComplete, setHasCalledComplete] = useState(false);
+  
+  // Review & Bot State
+  const [isTutorOpen, setIsTutorOpen] = useState(false);
+  
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const currentQuestion = quizData.questions[currentIndex];
+  
+  // Call onQuizComplete when quiz finishes
+  useEffect(() => {
+    if (isFinished && onQuizComplete && !hasCalledComplete && results.length > 0) {
+      const score = results.filter(r => r.isCorrect).length;
+      onQuizComplete(score, quizData.questions.length);
+      setHasCalledComplete(true);
+    }
+  }, [isFinished, onQuizComplete, results, quizData.questions.length, hasCalledComplete]);
+
+  useEffect(() => {
+    if (isAnswered || isFinished) return;
+
+    setTimeLeft(timePerQuestion);
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleTimeOut();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, isAnswered, isFinished]);
+
+  const handleTimeOut = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIsAnswered(true);
+    // Treated as incorrect if timed out
+    setResults(prev => [...prev, { isCorrect: false, selectedOption: -1 }]);
+  };
+
+  const handleOptionClick = (index: number) => {
+    if (isAnswered) return;
+    
+    if (timerRef.current) clearInterval(timerRef.current);
+    setSelectedOption(index);
+    setIsAnswered(true);
+    
+    const isCorrect = index === currentQuestion.correctAnswerIndex;
+    setResults(prev => [...prev, { isCorrect, selectedOption: index }]);
+  };
+
+  const handleNext = () => {
+    if (currentIndex < quizData.questions.length - 1) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedOption(null);
+      setIsAnswered(false);
+    } else {
+      // Use setTimeout to ensure all state updates are complete before showing results
+      setTimeout(() => {
+        setIsFinished(true);
+      }, 0);
+    }
+  };
+
+  const handleFinishEarly = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    
+    // Add unanswered questions as skipped (incorrect)
+    const remainingQuestions = quizData.questions.length - results.length;
+    const skippedResults: QuestionResult[] = [];
+    
+    for (let i = 0; i < remainingQuestions; i++) {
+      skippedResults.push({ isCorrect: false, selectedOption: -1 });
+    }
+    
+    const newResults = [...results, ...skippedResults];
+    setResults(newResults);
+    
+    // Use setTimeout to ensure results are updated before setting isFinished
+    setTimeout(() => {
+      setIsFinished(true);
+    }, 50);
+  };
+
+  const handleShareWhatsApp = () => {
+    const score = results.filter(r => r.isCorrect).length;
+    const total = quizData.questions.length;
+    
+    let text = `🎓 *AIQuiz Report* 🎓\n\n`;
+    text += `📄 *Topic:* ${quizData.title}\n`;
+    text += `🏆 *Score:* ${score}/${total} (${Math.round(score/total*100)}%)\n\n`;
+    
+    // We need to loop through all questions. results array might be shorter if finished early.
+    quizData.questions.forEach((q, i) => {
+      const result = results[i];
+      const hasAnswered = !!result;
+      const isCorrect = hasAnswered ? result.isCorrect : false;
+      
+      const status = isCorrect ? '✅' : '❌';
+      let selectedText = 'Skipped';
+      
+      if (hasAnswered) {
+         selectedText = result.selectedOption >= 0 ? q.options[result.selectedOption] : 'Time Out';
+      }
+      
+      const correctText = q.options[q.correctAnswerIndex];
+      
+      text += `*Q${i+1}* ${status}\n`;
+      text += `📝 ${q.questionText}\n`;
+      text += `👉 You: ${selectedText}\n`;
+      if (!isCorrect) {
+        text += `✅ Correct: ${correctText}\n`;
+      }
+      text += `\n`;
+    });
+    
+    text += `Generated by AIQuiz`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const toggleMaster = () => {
+    setIsTutorOpen(prev => !prev);
+  };
+
+  if (isFinished) {
+    const score = results.filter(r => r.isCorrect).length;
+    const percentage = Math.round((score / quizData.questions.length) * 100);
+    const chartData = [
+      { name: 'Correct', value: score },
+      { name: 'Incorrect', value: quizData.questions.length - score },
+    ];
+    const COLORS = ['#10b981', '#ef4444'];
+
+    return (
+      <div className="flex flex-col items-center w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in pb-24">
+        {/* Score Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full text-center border border-slate-100 mb-8">
+          <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Award className="w-10 h-10 text-emerald-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Quiz Completed!</h2>
+          <p className="text-slate-500 mb-8">Here is how you performed</p>
+          
+          {/* Simple Score Display without Recharts */}
+          <div className="relative w-64 h-64 mx-auto mb-8">
+            <svg viewBox="0 0 200 200" className="w-full h-full transform -rotate-90">
+              {/* Background circle */}
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="#fee2e2"
+                strokeWidth="20"
+              />
+              {/* Correct answers arc */}
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="20"
+                strokeDasharray={`${(score / quizData.questions.length) * 502.65} 502.65`}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-5xl font-bold text-slate-800">{score}/{quizData.questions.length}</span>
+              <span className="text-sm text-slate-400 font-medium uppercase tracking-wider mt-2">Score</span>
+              <span className="text-2xl font-bold text-emerald-600 mt-1">{percentage}%</span>
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <button 
+              onClick={handleShareWhatsApp}
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3.5 rounded-xl transition-colors flex items-center justify-center"
+            >
+               <Share2 className="w-5 h-5 mr-2" />
+               Share Results
+            </button>
+            <button 
+              onClick={onExit}
+              className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl transition-colors"
+            >
+              New Quiz
+            </button>
+          </div>
+        </div>
+
+        {/* Detailed Review Section */}
+        <div className="w-full mb-8">
+          <div className="flex items-center mb-6">
+             <CheckCircle className="w-5 h-5 text-slate-400 mr-2" />
+             <h3 className="text-lg font-bold text-slate-700">Detailed Review & Explanations</h3>
+          </div>
+
+          <div className="space-y-6">
+            {quizData.questions.map((q, idx) => {
+              // Handle case where user finished early, so result might be undefined
+              const result = results[idx];
+              const hasAnswered = !!result;
+              const isCorrect = hasAnswered ? result.isCorrect : false;
+              
+              return (
+                <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                  {/* Question Header */}
+                  <div className={`p-4 border-b border-slate-100 flex justify-between items-start ${isCorrect ? 'bg-emerald-50/50' : 'bg-red-50/50'}`}>
+                    <div className="flex-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mb-2 ${
+                        isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        Question {idx + 1}
+                      </span>
+                      <h4 className="text-base font-medium text-slate-900">{q.questionText}</h4>
+                    </div>
+                    <div className="ml-4 flex-shrink-0">
+                      {isCorrect 
+                        ? <CheckCircle className="w-6 h-6 text-emerald-500" />
+                        : <XCircle className="w-6 h-6 text-red-500" />
+                      }
+                    </div>
+                  </div>
+
+                  {/* Filtered Options Review */}
+                  <div className="p-4 space-y-2">
+                    {q.options.map((opt, optIdx) => {
+                      const isSelected = hasAnswered && result.selectedOption === optIdx;
+                      const isActuallyCorrect = q.correctAnswerIndex === optIdx;
+                      
+                      if (!isSelected && !isActuallyCorrect) return null;
+
+                      let style = "";
+                      let icon = null;
+                      let label = "";
+
+                      if (isActuallyCorrect) {
+                        style = "border-emerald-200 bg-emerald-50 text-emerald-800 font-medium";
+                        icon = <CheckCircle className="w-4 h-4 text-emerald-600" />;
+                        label = "Correct Answer";
+                      } else if (isSelected && !isCorrect) {
+                         style = "border-red-200 bg-red-50 text-red-800";
+                         icon = <XCircle className="w-4 h-4 text-red-500" />;
+                         label = "Your Answer";
+                      }
+
+                      if (isSelected && isActuallyCorrect) {
+                         label = "Your Answer (Correct)";
+                      }
+
+                      return (
+                        <div key={optIdx} className={`flex items-center justify-between p-3 rounded-lg border ${style} text-sm`}>
+                           <div className="flex flex-col">
+                             <span className="text-xs font-bold opacity-70 mb-1 uppercase">{label}</span>
+                             <span>{opt}</span>
+                           </div>
+                           {icon}
+                        </div>
+                      );
+                    })}
+                    {(!hasAnswered || result.selectedOption === -1) && (
+                       <div className="p-3 rounded-lg border border-orange-200 bg-orange-50 text-orange-800 text-sm flex justify-between items-center">
+                          <span>{hasAnswered ? "You did not answer in time." : "You skipped this question."}</span>
+                          <Clock className="w-4 h-4" />
+                       </div>
+                    )}
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="bg-slate-50 p-4 border-t border-slate-100">
+                    <div className="">
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Explanation</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">{q.explanation}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Master Bot Section */}
+        <div className="w-full bg-slate-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+               <GraduationCap className="w-64 h-64" />
+            </div>
+            <div className="relative z-10">
+               <div className="flex items-center space-x-4 mb-4">
+                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                     <GraduationCap className="w-8 h-8 text-emerald-400" />
+                  </div>
+                  <div>
+                     <h3 className="text-2xl font-bold">Consult with Master</h3>
+                     <p className="text-slate-400">Your Personal AI Tutor</p>
+                  </div>
+               </div>
+               <p className="text-slate-300 mb-6 max-w-lg text-lg leading-relaxed">
+                  Still have doubts about a question? Or want to learn more about this topic? Master has analyzed your entire quiz result and is ready to help.
+               </p>
+               <button 
+                  onClick={toggleMaster}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg flex items-center transition-all shadow-lg shadow-emerald-900/20"
+               >
+                  <MessageSquare className="w-6 h-6 mr-3" />
+                  Chat with Master
+               </button>
+            </div>
+        </div>
+
+        <AITutor 
+          quizData={quizData}
+          isOpen={isTutorOpen} 
+          onClose={() => setIsTutorOpen(false)} 
+        />
+      </div>
+    );
+  }
+
+  // PLAYING STATE
+  return (
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in relative">
+      <div className="flex justify-between items-center mb-6">
+         <div>
+            <h2 className="text-xl font-bold text-slate-800">{quizData.title}</h2>
+            <p className="text-sm text-slate-500">Question {currentIndex + 1} of {quizData.questions.length}</p>
+         </div>
+         <div className={`flex items-center px-4 py-2 rounded-full font-mono font-medium transition-colors
+             ${timeLeft <= 10 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-700'}
+           `}>
+              <Clock className="w-4 h-4 mr-2" />
+              {timeLeft}s
+         </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full h-2 bg-slate-200 rounded-full mb-8 overflow-hidden">
+        <div 
+          className="h-full bg-emerald-500 transition-all duration-500 ease-out"
+          style={{ width: `${((currentIndex + 1) / quizData.questions.length) * 100}%` }}
+        ></div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 mb-6 relative">
+        <h3 className="text-lg sm:text-xl font-medium text-slate-900 mb-8 leading-relaxed">
+          {currentQuestion.questionText}
+        </h3>
+
+        <div className="space-y-3">
+          {currentQuestion.options.map((option, idx) => {
+            let stateClass = "border-slate-200 hover:border-emerald-500 hover:bg-emerald-50";
+            let icon = null;
+
+            if (isAnswered) {
+              // In game mode, we just show what was selected, we don't reveal answer yet based on request
+              if (idx === selectedOption) {
+                 stateClass = "border-emerald-600 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-600";
+              } else {
+                 stateClass = "border-slate-100 opacity-50";
+              }
+            }
+
+            return (
+              <button
+                key={idx}
+                disabled={isAnswered}
+                onClick={() => handleOptionClick(idx)}
+                className={`
+                  w-full text-left p-4 rounded-xl border-2 transition-all duration-200 flex justify-between items-center
+                  ${stateClass}
+                `}
+              >
+                <span className="font-medium">{option}</span>
+                {icon}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mt-6">
+        {/* Submit Button always available */}
+        <button 
+          onClick={handleFinishEarly}
+          className="flex items-center text-slate-500 hover:text-red-600 font-medium px-4 py-3 rounded-xl transition-colors hover:bg-red-50"
+        >
+          <StopCircle className="w-5 h-5 mr-2" />
+          Submit Quiz
+        </button>
+
+        {isAnswered && (
+          <button
+            onClick={handleNext}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold flex items-center transition-colors shadow-lg shadow-emerald-200 animate-fade-in-up"
+          >
+            {currentIndex === quizData.questions.length - 1 ? "Finish & See Results" : "Next Question"}
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default QuizPlayer;
