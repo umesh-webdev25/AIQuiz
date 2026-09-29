@@ -27,29 +27,29 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white p-8 border border-gray-200 rounded-2xl shadow-sm">
-      <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Welcome Back</h2>
+    <div className="max-w-md mx-auto mt-10 bg-white dark:bg-gray-800 p-8 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm">
+      <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">Welcome Back</h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Email Address</label>
           <input 
             type="email" 
             required 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all"
             placeholder="you@example.com"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Password</label>
           <div className="relative">
             <input 
               type={showPassword ? "text" : "password"} 
               required 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all pr-12"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all pr-12"
               placeholder="••••••••"
             />
             <button
@@ -69,7 +69,7 @@ export default function Login() {
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
-      <p className="mt-6 text-center text-gray-600">
+      <p className="mt-6 text-center text-gray-600 dark:text-gray-300">
         Don't have an account? <Link to="/signup" className="text-orange-600 font-medium hover:underline">Sign up</Link>
       </p>
     </div>

@@ -52,29 +52,29 @@ export default function Dashboard() {
     <div className="grid md:grid-cols-3 gap-8">
       {/* Quiz Generator */}
       <div className="md:col-span-1">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 sticky top-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 sticky top-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <Plus className="text-orange-600" />
             New Quiz
           </h2>
           <form onSubmit={handleGenerate} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Topic</label>
               <input 
                 type="text" 
                 required
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. World War II, React Hooks"
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Difficulty</label>
               <select 
                 value={difficulty}
                 onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
               >
                 <option value="Easy">Easy</option>
                 <option value="Medium">Medium</option>
@@ -82,7 +82,7 @@ export default function Dashboard() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Number of Questions ({count})</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Number of Questions ({count})</label>
               <input 
                 type="range" 
                 min="3" max="15" 
@@ -104,7 +104,7 @@ export default function Dashboard() {
 
       {/* History */}
       <div className="md:col-span-2">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
           <Clock className="text-orange-600" />
           Your Quiz History
         </h2>
@@ -114,10 +114,10 @@ export default function Dashboard() {
             <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-200 text-center">
+          <div className="bg-white dark:bg-gray-800 p-12 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 text-center">
             <Target className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-900 mb-2">No quizzes yet</h3>
-            <p className="text-gray-500">Generate your first quiz using the panel on the left!</p>
+            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No quizzes yet</h3>
+            <p className="text-gray-500 dark:text-gray-400">Generate your first quiz using the panel on the left!</p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 gap-4">
@@ -125,10 +125,10 @@ export default function Dashboard() {
               <Link 
                 key={quiz._id} 
                 to={quiz.score !== undefined && quiz.userAnswer ? `/results/${quiz._id}` : `/quiz/${quiz._id}`}
-                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:shadow-md hover:border-orange-300 transition-all group"
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-orange-300 transition-all group"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-lg text-gray-900 truncate pr-4">{quiz.topic}</h3>
+                  <h3 className="font-bold text-lg text-gray-900 dark:text-white truncate pr-4">{quiz.topic}</h3>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-medium 
                     ${quiz.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : 
                       quiz.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-700' : 
@@ -136,7 +136,7 @@ export default function Dashboard() {
                     {quiz.difficulty}
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-sm text-gray-500">
+                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                   <span>{quiz.totalQuestions} Questions</span>
                   {quiz.score !== undefined && (
                     <span className="font-bold text-orange-600 group-hover:text-orange-700">

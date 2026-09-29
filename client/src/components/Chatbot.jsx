@@ -114,7 +114,7 @@ const Chatbot = () => {
         >
             {isOpen && (
                 <div 
-                    className={`absolute ${panelVerticalClass} ${panelHorizontalClass} w-80 h-96 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 transition-all`}
+                    className={`absolute ${panelVerticalClass} ${panelHorizontalClass} w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-700 transition-all`}
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                 >
@@ -132,9 +132,9 @@ const Chatbot = () => {
                         </button>
                     </div>
                     
-                    <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3">
+                    <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-gray-900 flex flex-col gap-3">
                         {messages.map((msg, idx) => (
-                            <div key={idx} className={`max-w-[85%] p-3 text-sm shadow-sm ${msg.sender === 'user' ? 'bg-indigo-600 text-white rounded-xl rounded-tr-sm self-end' : 'bg-orange-100 text-orange-900 rounded-xl rounded-tl-sm self-start'}`}>
+                            <div key={idx} className={`max-w-[85%] p-3 text-sm shadow-sm ${msg.sender === 'user' ? 'bg-orange-600 text-white rounded-xl rounded-tr-sm self-end' : 'bg-orange-100 text-orange-900 rounded-xl rounded-tl-sm self-start'}`}>
                                 {msg.text}
                             </div>
                         ))}
@@ -148,14 +148,14 @@ const Chatbot = () => {
                         <div ref={messagesEndRef} />
                     </div>
                     
-                    <div className="p-3 bg-white border-t border-gray-200">
+                    <div className="p-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
                         <form onSubmit={handleSendMessage} className="flex gap-2">
                             <input 
                                 type="text" 
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder="Type a message..." 
-                                className="flex-1 px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-sm" 
+                                className="flex-1 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-sm" 
                             />
                             <button type="submit" disabled={isLoading || !inputValue.trim()} className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors disabled:opacity-50">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">

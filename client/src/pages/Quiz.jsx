@@ -74,7 +74,7 @@ export default function Quiz() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 className="w-12 h-12 animate-spin text-orange-600 mb-4" />
-        <p className="text-gray-500 font-medium">Loading your quiz...</p>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">Loading your quiz...</p>
       </div>
     );
   }
@@ -88,16 +88,16 @@ export default function Quiz() {
     <div className="max-w-3xl mx-auto mt-4">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{quiz.topic} Quiz</h2>
-          <p className="text-gray-500 text-sm">Question {currentQuestion + 1} of {quiz.totalQuestions}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{quiz.topic} Quiz</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Question {currentQuestion + 1} of {quiz.totalQuestions}</p>
         </div>
         <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full font-medium text-sm">
           {quiz.difficulty}
         </span>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 md:p-8 mb-6">
-        <h3 className="text-xl font-medium text-gray-900 mb-6 leading-relaxed">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-8 mb-6">
+        <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-6 leading-relaxed">
           {question.questionText}
         </h3>
 
@@ -109,12 +109,12 @@ export default function Quiz() {
               className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                 answers[currentQuestion] === option 
                   ? 'border-orange-600 bg-orange-50 text-orange-900' 
-                  : 'border-gray-200 hover:border-orange-300 hover:bg-gray-50 text-gray-700'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 hover:bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200'
               }`}
             >
               <div className="flex items-center gap-3">
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  answers[currentQuestion] === option ? 'border-orange-600' : 'border-gray-300'
+                  answers[currentQuestion] === option ? 'border-orange-600' : 'border-gray-300 dark:border-gray-600'
                 }`}>
                   {answers[currentQuestion] === option && <div className="w-3 h-3 bg-orange-600 rounded-full" />}
                 </div>
@@ -129,7 +129,7 @@ export default function Quiz() {
         <button
           onClick={handlePrevious}
           disabled={currentQuestion === 0}
-          className="px-6 py-3 rounded-lg font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          className="px-6 py-3 rounded-lg font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:bg-gray-900 disabled:opacity-50 transition-colors"
         >
           Previous
         </button>
