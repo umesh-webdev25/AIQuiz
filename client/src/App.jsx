@@ -1,16 +1,21 @@
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useContext } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import Chatbot from './components/Chatbot';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Quiz from './pages/Quiz';
 import Results from './pages/Results';
+import { AuthContext } from './context/AuthContext';
 
 function App() {
+  const { user } = useContext(AuthContext);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 font-sans">
       <Navbar />
@@ -28,6 +33,7 @@ function App() {
       </main>
       <Footer />
       <Toaster position="top-right" />
+      <Chatbot />
     </div>
   );
 }

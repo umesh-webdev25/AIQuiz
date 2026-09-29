@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import quizRoutes from './routes/quizRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import dns from 'dns';
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 // Load env vars
@@ -37,6 +38,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
