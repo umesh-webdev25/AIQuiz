@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
-import { BrainCircuit, LogOut, Sun, Moon } from 'lucide-react';
+import { LogOut, Sun, Moon } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
@@ -18,8 +18,8 @@ export default function Navbar() {
     <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 z-50 relative">
       <div className="container mx-auto px-4 max-w-7xl flex justify-between items-center h-14">
         <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-          <BrainCircuit className="w-8 h-8 text-orange-600" />
-          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">AI Quiz Master</span>
+          <img src="/logo.png" alt="AIQuizMaster Logo" className="w-12 h-12 object-contain" />
+          <span className="font-bold text-xl tracking-tight text-gray-900 dark:text-white">AIQuizMaster</span>
         </Link>
         <div className="flex items-center gap-4">
           <button 

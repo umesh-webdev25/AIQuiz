@@ -1,4 +1,3 @@
-import { BrainCircuit } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -6,14 +5,14 @@ export default function Footer() {
   <div className="container mx-auto px-4 max-w-7xl flex flex-col md:flex-row justify-between items-center gap-3">
     
     <div className="flex items-center gap-2">
-      <BrainCircuit className="w-5 h-5 text-orange-400" />
+      <img src="/logo.png" alt="AIQuizMaster Logo" className="w-8 h-8 object-contain" />
       <span className="font-bold text-base text-white">
-        AI Quiz Master
+        AIQuizMaster
       </span>
     </div>
 
     <p className="text-xs">
-      © {new Date().getFullYear()} AI Quiz Master. Built with MERN & Gemini.
+      © {new Date().getFullYear()} AIQuizMaster. Built with MERN & Gemini.
     </p>
 
     <div className="flex gap-4 text-xs">
