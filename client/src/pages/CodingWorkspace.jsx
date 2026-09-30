@@ -4,7 +4,7 @@ import Editor from '@monaco-editor/react';
 import api from '../services/api';
 import { ThemeContext } from '../context/ThemeContext';
 import { useContext } from 'react';
-import { Loader2, Play, Send, Lightbulb, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Menu, List } from 'lucide-react';
+import { Loader2, Play, Send, Lightbulb, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Menu, List, Code2, Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export default function CodingWorkspace() {
@@ -34,6 +34,19 @@ export default function CodingWorkspace() {
   const [hint, setHint] = useState('');
   const [explanation, setExplanation] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // Generator State
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [genTopic, setGenTopic] = useState("");
+  const [customGenTopic, setCustomGenTopic] = useState("");
+  const [genDifficulty, setGenDifficulty] = useState("Mixed");
+  const [genCount, setGenCount] = useState(10);
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  const predefinedTopics = [
+    "Array", "String", "Linked List", "HashMap", "Stack", 
+    "Queue", "Binary Search", "Sorting", "Recursion", "Dynamic Programming"
+  ];
 
   useEffect(() => {
     fetchData();
@@ -67,11 +80,36 @@ export default function CodingWorkspace() {
       
       if (probRes.data.length > 0) {
         selectProblem(probRes.data[0]);
+      } else {
+        setShowGenerateModal(true);
       }
     } catch (error) {
       toast.error('Failed to fetch coding workspace data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    const finalTopic = genTopic === "custom" ? customGenTopic : genTopic;
+    if (!finalTopic) {
+      toast.error("Please select or enter a topic");
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      await api.post("/coding/problems/generate", {
+        topic: finalTopic,
+        difficulty: genDifficulty,
+        count: Number(genCount),
+      });
+      toast.success(`Generated ${genCount} problems successfully!`);
+      setShowGenerateModal(false);
+      navigate(`/coding/workspace?topic=${encodeURIComponent(finalTopic)}`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to generate problems");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -231,6 +269,15 @@ export default function CodingWorkspace() {
                 </button>
               );
             })}
+            
+            <div className="p-4 border-t border-gray-200 dark:border-[#333]">
+              <button 
+                onClick={() => setShowGenerateModal(true)}
+                className="w-full py-2 bg-orange-100 hover:bg-orange-200 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-400 rounded flex items-center justify-center gap-2 font-medium text-sm transition-colors border border-orange-200 dark:border-orange-900/50"
+              >
+                <Plus className="w-4 h-4" /> Generate New
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -500,6 +547,79 @@ export default function CodingWorkspace() {
           background-color: #555;
         }
       `}</style>
+
+      {/* Generate Modal */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-[#1f1f1f] rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-gray-200 dark:border-[#333]">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-[#333]">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Code2 className="w-5 h-5 text-orange-500" /> 
+                Generate Coding Problems
+              </h2>
+              {problems.length > 0 && (
+                <button onClick={() => setShowGenerateModal(false)} disabled={isGenerating} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              )}
+            </div>
+            
+            <div className="p-6">
+              {isGenerating ? (
+                <div className="text-center py-10">
+                  <Loader2 className="w-16 h-16 text-orange-500 animate-spin mx-auto mb-6" />
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Generating problems...</h3>
+                  <p className="text-gray-500 dark:text-gray-400 mb-6">Generating {genCount} {genTopic === "custom" ? customGenTopic : genTopic} Problems</p>
+                  <div className="w-full max-w-md mx-auto bg-gray-200 dark:bg-[#333] rounded-full h-2 overflow-hidden">
+                    <div className="bg-orange-500 h-2 rounded-full animate-pulse w-full"></div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">What do you want to practice?</label>
+                    <div className="flex flex-wrap gap-2">
+                      {predefinedTopics.map(t => (
+                        <button key={t} onClick={() => setGenTopic(t)} className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${genTopic === t ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'border-gray-200 dark:border-[#444] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#2a2a2a]'}`}>
+                          {t}
+                        </button>
+                      ))}
+                      <button onClick={() => setGenTopic("custom")} className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all ${genTopic === "custom" ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'border-gray-200 dark:border-[#444] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#2a2a2a]'}`}>
+                        Custom Topic...
+                      </button>
+                    </div>
+                    {genTopic === "custom" && (
+                      <input type="text" value={customGenTopic} onChange={e => setCustomGenTopic(e.target.value)} placeholder="Enter your own topic" className="mt-3 w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-[#444] bg-transparent text-gray-900 dark:text-white focus:border-orange-500 outline-none" />
+                    )}
+                  </div>
+
+                  <div className="flex gap-8">
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Difficulty</label>
+                      <div className="flex gap-3">
+                        {["Easy", "Medium", "Hard", "Mixed"].map(diff => (
+                          <label key={diff} className="flex items-center gap-1.5 cursor-pointer text-sm">
+                            <input type="radio" name="difficulty" value={diff} checked={genDifficulty === diff} onChange={() => setGenDifficulty(diff)} className="text-orange-500 focus:ring-orange-500" />
+                            <span className="text-gray-700 dark:text-gray-300">{diff}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Number of Problems</label>
+                      <input type="number" min="1" max="20" value={genCount} onChange={e => setGenCount(e.target.value)} className="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-[#444] bg-transparent text-gray-900 dark:text-white focus:border-orange-500 outline-none" />
+                    </div>
+                  </div>
+                  
+                  <button onClick={handleGenerate} disabled={!genTopic || (genTopic === 'custom' && !customGenTopic) || genCount < 1 || genCount > 20} className="w-full py-3 mt-4 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 disabled:cursor-not-allowed text-white rounded-lg font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+                    <Code2 className="w-5 h-5" /> Generate Problems
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

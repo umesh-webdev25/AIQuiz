@@ -31,7 +31,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link to="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium">Dashboard</Link>
-              <Link to="/coding" className="text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium">Coding Practice</Link>
+              <Link to="/coding/workspace" className="text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium">Coding Practice</Link>
               <button 
                 onClick={handleLogout}
                 className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-red-600 font-medium transition-colors"
