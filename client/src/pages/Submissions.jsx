@@ -9,6 +9,7 @@ import { ThemeContext } from '../context/ThemeContext';
 
 export default function Submissions() {
   const [submissions, setSubmissions] = useState([]);
+  const [stats, setStats] = useState({ solved: 0, total: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [selectedSub, setSelectedSub] = useState(null);
   const { theme } = useContext(ThemeContext);
@@ -21,10 +22,11 @@ export default function Submissions() {
   const fetchSubmissions = async () => {
     try {
       const res = await api.get('/coding/progress');
+      const solved = res.data.filter(sub => sub.status === 'solved');
+      setStats({ solved: solved.length, total: res.data.length });
+      
       // Sort by lastSubmittedAt desc and only include solved submissions
-      const sorted = res.data
-        .filter(sub => sub.status === 'solved')
-        .sort((a, b) => new Date(b.lastSubmittedAt) - new Date(a.lastSubmittedAt));
+      const sorted = solved.sort((a, b) => new Date(b.lastSubmittedAt) - new Date(a.lastSubmittedAt));
       setSubmissions(sorted);
     } catch (error) {
       toast.error('Failed to fetch submissions');
@@ -57,9 +59,39 @@ export default function Submissions() {
     );
   }
 
+  const percentage = stats.total > 0 ? Math.round((stats.solved / stats.total) * 100) : 0;
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">My Submissions</h1>
+      <div className="flex justify-between items-center mb-8 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Submissions</h1>
+        
+        <div className="flex items-center gap-4">
+          <div className="text-right hidden sm:block">
+            <div className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Success Rate</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">{stats.solved} out of {stats.total} attempted</div>
+          </div>
+          <div className="relative w-16 h-16 flex-shrink-0">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 50 50">
+              <circle className="text-gray-100 dark:text-gray-700 stroke-current" strokeWidth="4" cx="25" cy="25" r="20" fill="transparent" />
+              <circle 
+                className="text-orange-500 stroke-current drop-shadow-md transition-all duration-1000 ease-out" 
+                strokeWidth="4" 
+                strokeLinecap="round" 
+                cx="25" cy="25" r="20" fill="transparent" 
+                strokeDasharray={circumference} 
+                strokeDashoffset={strokeDashoffset} 
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{percentage}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Submissions List */}
